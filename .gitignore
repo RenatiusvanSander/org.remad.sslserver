@@ -72,3 +72,8 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 /target/
+.idea/compiler.xml
+.idea/encodings.xml
+.idea/misc.xml
+src/main/resources/
+src/test/
