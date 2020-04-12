@@ -8,10 +8,12 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * A simple kept SSL Server.
+ */
 public class SSLServer {
 
     private final static Logger logger = Logger.getLogger(SSLServer.class.getName());
@@ -23,7 +25,8 @@ public class SSLServer {
 
     public static void main(String[] args) {
         try {
-            Socket socket = createServerSocket(PORT, 1000, "192.168.1.11");
+            initKeystore();
+            Socket socket = createServerSocket(PORT, 1000, "192.168.0.14");
 
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             try (BufferedReader bufferedReader =
@@ -54,5 +57,10 @@ public class SSLServer {
             throw new IOException(e);
         }
         return socket;
+    }
+
+    public static void initKeystore() {
+        System.setProperty("javax.net.ssl.keyStore", "/home/rmeier/mykeystore/examplestore");
+        System.setProperty("javax.net.ssl.keyStorePassword", "RemAd5619");
     }
 }
