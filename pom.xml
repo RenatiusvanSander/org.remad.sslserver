@@ -95,7 +95,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>org.remad.sslserver.SSLServer</mainClass>
+                            <mainClass>org.remad.sslserver.ThreadedSSLServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 /**
  * A simple kept SSL Server.
  */
-public class SSLServer {
+public class ThreadedSSLServer {
 
     //private final static Logger logger = Logger.getLogger(SSLServer.class.getName());
     private static final int PORT = 8000;
@@ -41,7 +41,7 @@ public class SSLServer {
             }
             System.out.println("Closed");
         } catch (IOException | RuntimeException ex) {
-            Logger.getLogger(SSLServer.class.getName())
+            Logger.getLogger(ThreadedSSLServer.class.getName())
                     .log(Level.SEVERE, ex.getLocalizedMessage(), ex);
         }
     }
