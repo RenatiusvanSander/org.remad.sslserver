@@ -16,17 +16,18 @@ import java.util.logging.Logger;
  */
 public class SSLServer {
 
-    private final static Logger logger = Logger.getLogger(SSLServer.class.getName());
+    //private final static Logger logger = Logger.getLogger(SSLServer.class.getName());
     private static final int PORT = 8000;
-    private static final int BACKLOG = 1;
-    private Socket socket;
-
-    // ToDo refactor socket connection bring up and server, means createSSLSocket
+    // private static final int BACKLOG = 1000;
+    // private Socket socket;
 
     public static void main(String[] args) {
         try {
+            // ToDo refactor that to initServer
+            // Reads ServerSettings from file initServerSettings();
             initKeystore();
-            Socket socket = createServerSocket(PORT, 1000, "192.168.0.14");
+            ServerSocket serverSocket = createServerSocket(PORT, 1000, "192.168.1.11");
+            Socket socket = serverSocket.accept();
 
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             try (BufferedReader bufferedReader =
@@ -39,27 +40,25 @@ public class SSLServer {
                 }
             }
             System.out.println("Closed");
-        } catch (IOException ex) {
+        } catch (IOException | RuntimeException ex) {
             Logger.getLogger(SSLServer.class.getName())
                     .log(Level.SEVERE, ex.getLocalizedMessage(), ex);
         }
     }
 
-    public static Socket createServerSocket(int port, int backlog, String ip) throws IOException {
-        Socket socket;
+    public static ServerSocket createServerSocket(int port, int backlog, String ip) throws IOException {
+        ServerSocket serverSocket;
         try {
             InetAddress ifAddress = InetAddress.getByName(ip);
             SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-            ServerSocket serverSocket = sslServerSocketFactory.createServerSocket(port, backlog, ifAddress);
-            socket = serverSocket.accept();
-            System.out.println(socket.toString());
+            serverSocket = sslServerSocketFactory.createServerSocket(port, backlog, ifAddress);
         } catch (IOException e) {
-            throw new IOException(e);
+            throw new IOException("Server Socket Error: Cannot bind to " + ip + ".", e);
         }
-        return socket;
+        return serverSocket;
     }
 
-    public static void initKeystore() {
+    public static void initKeystore() throws RuntimeException {
         System.setProperty("javax.net.ssl.keyStore", "/home/rmeier/mykeystore/examplestore");
         System.setProperty("javax.net.ssl.keyStorePassword", "RemAd5619");
     }
