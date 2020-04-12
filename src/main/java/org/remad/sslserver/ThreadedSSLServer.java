@@ -1,10 +1,7 @@
 package org.remad.sslserver;
 
 import javax.net.ssl.SSLServerSocketFactory;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,27 +19,29 @@ public class ThreadedSSLServer {
     // private Socket socket;
 
     public static void main(String[] args) {
+        ServerSocket serverSocket;
+        Socket socket;
         try {
             // ToDo refactor that to initServer
             // Reads ServerSettings from file initServerSettings();
             initKeystore();
-            ServerSocket serverSocket = createServerSocket(PORT, 1000, "192.168.1.11");
-            Socket socket = serverSocket.accept();
-
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            try (BufferedReader bufferedReader =
-                         new BufferedReader(
-                                 new InputStreamReader(socket.getInputStream()))) {
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    System.out.println(line);
-                    out.println(line);
-                }
-            }
-            System.out.println("Closed");
-        } catch (IOException | RuntimeException ex) {
+            serverSocket = createServerSocket(PORT, 1000, "192.168.1.11");
+        } catch (IOException e) {
             Logger.getLogger(ThreadedSSLServer.class.getName())
-                    .log(Level.SEVERE, ex.getLocalizedMessage(), ex);
+                    .log(Level.SEVERE, e.getLocalizedMessage(), e);
+            return;
+        }
+
+        // ToDo refactor to MainServerThread.
+        while (true) {
+            try {
+                socket = serverSocket.accept();
+                // new thread for a client
+                new ServerThread(socket).start();
+            } catch (IOException | RuntimeException ex) {
+                Logger.getLogger(ThreadedSSLServer.class.getName())
+                        .log(Level.SEVERE, ex.getLocalizedMessage(), ex);
+            }
         }
     }
 
