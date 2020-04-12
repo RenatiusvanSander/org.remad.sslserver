@@ -6,6 +6,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+/**
+ *
+ */
 public class ServerThread extends Thread {
 
     protected Socket socket;
@@ -35,12 +38,14 @@ public class ServerThread extends Thread {
         }
         finally {
             try {
+                String remoteSocketAddress = socket.getRemoteSocketAddress().toString();
                 socket.close();
-                System.out.println("Closed");
+                System.out.println("Closed remote socket: " + remoteSocketAddress);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         System.out.println("Terminated thread.");
+        stop();
     }
 }
