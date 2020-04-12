@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,25 +16,14 @@ public class SSLServer {
 
     private final static Logger logger = Logger.getLogger(SSLServer.class.getName());
     private static final int PORT = 8000;
-    private static final int BACKLOG = 1000;
-    private ServerSocket serverSocket;
+    private static final int BACKLOG = 1;
+    private Socket socket;
 
     // ToDo refactor socket connection bring up and server, means createSSLSocket
 
     public static void main(String[] args) {
-
-
-        SSLServerSocketFactory sslServerSocketFactory =
-                (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-
         try {
-            ServerSocket sslServerSocket =
-                    sslServerSocketFactory.createServerSocket(PORT);
-            System.out.println("SSL ServerSocket started");
-            System.out.println(sslServerSocket.toString());
-
-            Socket socket = sslServerSocket.accept();
-            System.out.println("ServerSocket accepted");
+            Socket socket = createServerSocket(PORT, 1000, "192.168.1.11");
 
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             try (BufferedReader bufferedReader =
@@ -46,18 +36,23 @@ public class SSLServer {
                 }
             }
             System.out.println("Closed");
-
         } catch (IOException ex) {
             Logger.getLogger(SSLServer.class.getName())
-                    .log(Level.SEVERE, null, ex);
+                    .log(Level.SEVERE, ex.getLocalizedMessage(), ex);
         }
     }
 
-    private Socket createServerSocket(int serverPort, String host) throws IOException {
-        InetAddress ifAddress = InetAddress.getByName(host);
-        SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-        ServerSocket sslServerSocket = sslServerSocketFactory.createServerSocket(serverPort, BACKLOG, ifAddress);
-        Socket socket = sslServerSocket.accept();
+    public static Socket createServerSocket(int port, int backlog, String ip) throws IOException {
+        Socket socket;
+        try {
+            InetAddress ifAddress = InetAddress.getByName(ip);
+            SSLServerSocketFactory sslServerSocketFactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+            ServerSocket serverSocket = sslServerSocketFactory.createServerSocket(port, backlog, ifAddress);
+            socket = serverSocket.accept();
+            System.out.println(socket.toString());
+        } catch (IOException e) {
+            throw new IOException(e);
+        }
         return socket;
     }
 }
