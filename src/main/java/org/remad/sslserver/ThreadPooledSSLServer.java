@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 /**
  * A simple kept SSL Server.
  */
-public class ThreadedSSLServer {
+public class ThreadPooledSSLServer {
 
     /**
      * Main class of ssl server.
@@ -22,7 +22,7 @@ public class ThreadedSSLServer {
         try {
             serverSocket = ServerSocketFactory.initServerSocket();
         } catch (IOException e) {
-            Logger.getLogger(ThreadedSSLServer.class.getName())
+            Logger.getLogger(ThreadPooledSSLServer.class.getName())
                     .log(Level.SEVERE, e.getLocalizedMessage(), e);
             return;
         }
@@ -33,7 +33,7 @@ public class ThreadedSSLServer {
                 socket = serverSocket.accept();
                 new ServerThread(socket).start();
             } catch (IOException | RuntimeException ex) {
-                Logger.getLogger(ThreadedSSLServer.class.getName())
+                Logger.getLogger(ThreadPooledSSLServer.class.getName())
                         .log(Level.SEVERE, ex.getLocalizedMessage(), ex);
             }
         }
