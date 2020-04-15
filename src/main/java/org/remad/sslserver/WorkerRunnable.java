@@ -17,8 +17,9 @@ public class WorkerRunnable implements Runnable {
 
     /**
      * Creates a new instance of WorkerRunnable.
+     *
      * @param clientSocket The client socket
-     * @param text The text of this WorkerRunnable
+     * @param text         The text of this WorkerRunnable
      */
     public WorkerRunnable(Socket clientSocket, String text) {
         this.clientSocket = clientSocket;
@@ -30,26 +31,24 @@ public class WorkerRunnable implements Runnable {
      */
     @Override
     public void run() {
-        while(!isStopped()) {
-            PrintWriter out = null;
-            try {
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try (BufferedReader bufferedReader =
-                         new BufferedReader(
-                                 new InputStreamReader(clientSocket.getInputStream()))) {
-                String line;
-                while ((line = bufferedReader.readLine()) != null && out != null) {
-                    System.out.println(line);
-                    out.println(line);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        PrintWriter out = null;
+        try {
+            out = new PrintWriter(clientSocket.getOutputStream(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        try (BufferedReader bufferedReader = new BufferedReader(
+                new InputStreamReader(clientSocket.getInputStream()))) {
+            String line;
+            while ((line = bufferedReader.readLine()) != null && out != null) {
+                System.out.println(line);
+                out.println(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        stop();
     }
 
     /**
