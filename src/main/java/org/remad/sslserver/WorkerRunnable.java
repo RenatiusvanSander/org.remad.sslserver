@@ -12,18 +12,18 @@ import java.net.Socket;
 public class WorkerRunnable implements Runnable {
 
     protected Socket clientSocket; // Required.
-    protected String text; // Required.
+    protected String name; // Required.
     protected boolean isStopped = false;
 
     /**
      * Creates a new instance of WorkerRunnable.
      *
      * @param clientSocket The client socket
-     * @param text         The text of this WorkerRunnable
+     * @param name         The name of this WorkerRunnable
      */
-    public WorkerRunnable(Socket clientSocket, String text) {
+    public WorkerRunnable(Socket clientSocket, String name) {
         this.clientSocket = clientSocket;
-        this.text = text;
+        this.name = name;
     }
 
     /**

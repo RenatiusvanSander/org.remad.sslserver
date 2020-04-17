@@ -8,19 +8,19 @@ import java.util.concurrent.Executors;
 
 /**
  * Implements the Runnable and handles ssl connections in a thread pool, which runs Worker.
- * // ToDo refactor to Singleton to avoid and deny parallel thread pools.
+ * ToDo refactor to Singleton to avoid and deny parallel thread pools.
  */
 public class ThreadPooledServerRunnable implements Runnable {
 
     /**
-     * Creates new instance of ThreadPooledServer.
-     *
+     * Creates new instance of ThreadPooledServerRunnable
      * @param serverSocket The socket of the server.
+     * @param numberOfWorkers The amount of {@link WorkerRunnable} for the thread pool.
      */
     public ThreadPooledServerRunnable(ServerSocket serverSocket, int numberOfWorkers) {
         this.serverSocket = serverSocket;
-        limitedhreadPooledWorkers = numberOfWorkers;
-        threadPool = Executors.newFixedThreadPool(limitedhreadPooledWorkers);
+        limitedThreadPooledWorkers = numberOfWorkers;
+        threadPool = Executors.newFixedThreadPool(limitedThreadPooledWorkers);
     }
 
     /**
@@ -44,10 +44,13 @@ public class ThreadPooledServerRunnable implements Runnable {
                 }
                 throw new RuntimeException("Error accepting client connection.", e);
             }
-            threadPool.execute(new WorkerRunnable(clientSocket, "Thread Pooled Server"));
+            threadPool.execute(new WorkerRunnable(clientSocket, "WorkerRunnable"));
         }
     }
 
+    /**
+     * Stops ThreadPooledServerRunnable.
+     */
     public synchronized void stop() {
         isStopped = true;
         try {
@@ -65,6 +68,6 @@ public class ThreadPooledServerRunnable implements Runnable {
 
     protected boolean isStopped = false;
     protected Thread runningThread = null;
-    protected int limitedhreadPooledWorkers;
+    protected int limitedThreadPooledWorkers;
     protected ExecutorService threadPool;
 }
