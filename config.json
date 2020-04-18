@@ -1,0 +1,9 @@
+{
+  "configFileFullPath" :  "config.json",
+  "backlog" :  1000,
+  "chatLogFileFullPath":  null,
+  "listenerPort" :  8000,
+  "serverJoinMessage" :  "You are visiting XYZ",
+  "serverName" : "Remad Colosseum",
+  "serverSocketIP" :  "192.168.1.11"
+}

@@ -17,7 +17,6 @@ public class WorkerRunnable implements Runnable {
 
     /**
      * Creates a new instance of WorkerRunnable.
-     *
      * @param clientSocket The client socket
      * @param name         The name of this WorkerRunnable
      */
