@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.StringTokenizer;
 
 /**
  * This handles a client socket connection in a thread.
@@ -42,8 +43,30 @@ public class Worker implements Runnable {
                 new InputStreamReader(clientSocket.getInputStream()))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
+                boolean isLogout = false;
+                String[] tokens = org.apache.maven.shared.utils.StringUtils.split(line);
+                String command = tokens[0];
+                switch(command.toLowerCase()) {
+                    case "<logout>": {
+                        send("Server: logged you off.");
+                        isLogout = true;
+                        break;
+                    }
+                    case "<login>": {
+                        break;
+                    }
+                    default: {
+                        send("You said: " + line);
+                        break;
+                    }
+                }
+
+                if(isLogout) {
+                    System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " has logged out.");
+                    break;
+                }
+
                 System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " wrote: " + line);
-                send("You said: " + line);
             }
         } catch (IOException e) {
             e.printStackTrace();
