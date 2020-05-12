@@ -3,6 +3,8 @@ package org.remad.sslserver;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -15,7 +17,7 @@ public class ThreadPooledServerRunnable implements Runnable {
     /**
      * Creates new instance of ThreadPooledServerRunnable
      * @param serverSocket The socket of the server.
-     * @param numberOfWorkers The amount of {@link WorkerRunnable} for the thread pool.
+     * @param numberOfWorkers The amount of {@link Worker} for the thread pool.
      */
     public ThreadPooledServerRunnable(ServerSocket serverSocket, int numberOfWorkers) {
         this.serverSocket = serverSocket;
@@ -44,7 +46,9 @@ public class ThreadPooledServerRunnable implements Runnable {
                 }
                 throw new RuntimeException("Error accepting client connection.", e);
             }
-            threadPool.execute(new WorkerRunnable(clientSocket, "WorkerRunnable"));
+            Worker worker = new Worker(clientSocket, "Worker", this);
+            getWorkers().add(worker);
+            threadPool.execute(worker);
         }
     }
 
@@ -60,14 +64,19 @@ public class ThreadPooledServerRunnable implements Runnable {
         }
     }
 
+    public List<Worker> getWorkers() {
+        return workers;
+    }
+
     private boolean isStopped() {
         return isStopped;
     }
 
     private final ServerSocket serverSocket;
-
     protected boolean isStopped = false;
     protected Thread runningThread = null;
     protected int limitedThreadPooledWorkers;
     protected ExecutorService threadPool;
+
+    private List<Worker> workers = new ArrayList<>();
 }
