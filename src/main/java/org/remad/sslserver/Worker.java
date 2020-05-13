@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.StringTokenizer;
 
 /**
@@ -50,6 +51,15 @@ public class Worker implements Runnable {
                     case "<logout>": {
                         send("Server: logged you off.");
                         isLogout = true;
+                        String message = getLogin() != null ? getLogin() + " offline." : getClientIP() + " offline.";
+
+                        // ToDo refactor to send of protocol.
+                        List<Worker> workers = server.getWorkers();
+                        for(Worker worker : workers) {
+                            if(worker != this) {
+                                worker.send(message);
+                            }
+                        }
                         break;
                     }
                     case "<login>": {
