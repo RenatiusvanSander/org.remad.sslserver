@@ -19,6 +19,7 @@ public class Worker implements Runnable {
     private String login = null;
     private boolean isStopped = false;
     private PrintWriter outPrintWriter = null;
+    private boolean isLogout;
 
     /**
      * Creates a new instance of WorkerRunnable.
@@ -34,29 +35,29 @@ public class Worker implements Runnable {
     }
 
     /**
-     * Runs a worker.            serverSocket.
+     * Runs a worker.
      */
     @Override
     public void run() {
+        setLogout(false);
         try (BufferedReader bufferedReader = new BufferedReader(
                 new InputStreamReader(clientSocket.getInputStream()))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                boolean isLogout = false;
                 String[] tokens = org.apache.maven.shared.utils.StringUtils.split(line);
                 String command = tokens.length == 0 ? line : tokens[0];
                 switch(command.toLowerCase()) {
                     case "<logout>": {
                         // Logs user out.
-                        send("Server: logged you off.");
-                        isLogout = true;
+                        setLogout(true);
                         String message = getLogin() != null ? getLogin() + " offline." : getClientIP() + " offline.";
-
                         // ToDo refactor to send of protocol.
                         List<Worker> workers = server.getWorkers();
                         for(Worker worker : workers) {
                             if(worker != this) {
                                 worker.send(message);
+                            } else {
+                                worker.send("Server: You logged off.");
                             }
                         }
                         break;
@@ -76,7 +77,7 @@ public class Worker implements Runnable {
                     }
                 }
 
-                if(isLogout) {
+                if(isLogout()) {
                     System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " has logged out.");
                     break;
                 }
@@ -138,5 +139,23 @@ public class Worker implements Runnable {
      */
     public InetAddress getClientIP() {
         return clientIP;
+    }
+
+    /**
+     * @return The name of this worker, is socket content of this instance.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return In case th user logs out {@code true} or in case of user has not loged out {@code false}.
+     */
+    public boolean isLogout() {
+        return isLogout;
+    }
+
+    public void setLogout(boolean logout) {
+        isLogout = logout;
     }
 }
