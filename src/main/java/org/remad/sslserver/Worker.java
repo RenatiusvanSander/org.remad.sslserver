@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * This handles a client socket connection in a thread.
@@ -23,7 +22,6 @@ public class Worker implements Runnable {
 
     /**
      * Creates a new instance of WorkerRunnable.
-     *
      * @param clientSocket The client socket
      * @param name         The name of this WorkerRunnable
      * @param server       The server instance
@@ -36,7 +34,7 @@ public class Worker implements Runnable {
     }
 
     /**
-     * Runs a worker.
+     * Runs a worker.            serverSocket.
      */
     @Override
     public void run() {
@@ -46,9 +44,10 @@ public class Worker implements Runnable {
             while ((line = bufferedReader.readLine()) != null) {
                 boolean isLogout = false;
                 String[] tokens = org.apache.maven.shared.utils.StringUtils.split(line);
-                String command = tokens[0];
+                String command = tokens.length == 0 ? line : tokens[0];
                 switch(command.toLowerCase()) {
                     case "<logout>": {
+                        // Logs user out.
                         send("Server: logged you off.");
                         isLogout = true;
                         String message = getLogin() != null ? getLogin() + " offline." : getClientIP() + " offline.";
@@ -63,9 +62,15 @@ public class Worker implements Runnable {
                         break;
                     }
                     case "<login>": {
+                        // Handles login.
+                        break;
+                    }
+                    case "<FileTransfer>": {
+                        // Transfers a file.
                         break;
                     }
                     default: {
+                        // Sends echo message back to client.
                         send("You said: " + line);
                         break;
                     }
@@ -100,7 +105,6 @@ public class Worker implements Runnable {
 
     /**
      * Sends message to client via output stream.
-     *
      * @param message The message addressed to client
      */
     public void send(String message) {

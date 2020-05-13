@@ -46,7 +46,7 @@ public class ThreadPooledServerRunnable implements Runnable {
                 }
                 throw new RuntimeException("Error accepting client connection.", e);
             }
-            Worker worker = new Worker(clientSocket, "Worker", this);
+            Worker worker = new Worker(clientSocket, clientSocket.toString(), this);
             getWorkers().add(worker);
             threadPool.execute(worker);
         }
