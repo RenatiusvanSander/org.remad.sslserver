@@ -3,10 +3,15 @@ package org.remad.sslserver;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This handles a client socket connection in a thread.
@@ -112,7 +117,63 @@ public class Worker implements Runnable {
                         break;
                     }
                     case "<FileTransfer>": {
+                        FileInputStream fis = null;
+                        BufferedInputStream bis = null;
+                        OutputStream os = null;
+                        FileOutputStream fos = null;
+                        BufferedOutputStream bos = null;
+                        InputStream is = null;
                         // Transfers a file.
+                        if(tokens.length == 2) {
+                            // Transfers a requested file to client
+                            try {
+                                String fullFileName = tokens[1];
+                                File file = new File(fullFileName);
+                                byte[] allocatedByteBuffer = new byte[(int)file.length()];
+                                fis = new FileInputStream(file);
+                                bis = new BufferedInputStream(fis);
+                                bis.read(allocatedByteBuffer,0, allocatedByteBuffer.length);
+                                os = clientSocket.getOutputStream();
+                                // System.out.println("Sending " + fullFileName + "(" + allocatedByteBuffer.length + " bytes)");
+                                os.write(allocatedByteBuffer,0,allocatedByteBuffer.length);
+                                os.flush();
+                                // System.out.println("Done.");
+                            } finally {
+                                if(fis != null && bis != null && os != null) {
+                                    // Whatever comes, Close streams when they are not null.
+                                    fis.close();
+                                    bis.close();
+                                    os.close();
+                                }
+                            }
+                        } else if(tokens.length > 2){
+                            try {
+                                String fullQualifiedFileName = tokens[1];
+                                int fileByteSize = Integer.parseInt(tokens[2]);
+                                // receive file
+                                byte [] allocatedByteBuffer  = new byte [fileByteSize];
+                                is = clientSocket.getInputStream();
+                                fos = new FileOutputStream(fullQualifiedFileName);
+                                bos = new BufferedOutputStream(fos);
+                                int bytesRead = is.read(allocatedByteBuffer,0,allocatedByteBuffer.length);
+                                int current = bytesRead;
+
+                                do {
+                                    bytesRead =
+                                            is.read(allocatedByteBuffer, current, (allocatedByteBuffer.length - current));
+                                    if(bytesRead >= 0) current += bytesRead;
+                                } while(bytesRead > -1);
+
+                                bos.write(allocatedByteBuffer, 0 , current);
+                                bos.flush();
+                            } finally {
+                                if(is != null && fos != null && bos != null) {
+                                    is.close();
+                                    fos.close();
+                                    bos.close();
+                                }
+                            }
+                        }
                         break;
                     }
                     default: {
@@ -224,7 +285,7 @@ public class Worker implements Runnable {
     }
 
     /**
-     * Increases login fil with +1.
+     * Increases login fail with +1.
      */
     public void setCountLoginFail() {
         this.countLoginFail++;
