@@ -3,19 +3,22 @@ package org.remad.sslserver;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * Implements the Runnable and handles ssl connections in a thread pool, which runs Worker.
  * ToDo refactor to Singleton to avoid and deny parallel thread pools.
+ * @author Remy Meier
  */
 public class ThreadPooledServerRunnable implements Runnable {
 
     /**
      * Creates new instance of ThreadPooledServerRunnable
      * @param serverSocket The socket of the server.
-     * @param numberOfWorkers The amount of {@link WorkerRunnable} for the thread pool.
+     * @param numberOfWorkers The amount of {@link Worker} for the thread pool.
      */
     public ThreadPooledServerRunnable(ServerSocket serverSocket, int numberOfWorkers) {
         this.serverSocket = serverSocket;
@@ -32,9 +35,9 @@ public class ThreadPooledServerRunnable implements Runnable {
             this.runningThread = Thread.currentThread();
         }
 
-        while (!isStopped) {
+        while (!isStopped()) {
+            // Accepts incoming client socket connection.
             Socket clientSocket;
-
             try {
                 clientSocket = serverSocket.accept();
             } catch (IOException e) {
@@ -44,7 +47,9 @@ public class ThreadPooledServerRunnable implements Runnable {
                 }
                 throw new RuntimeException("Error accepting client connection.", e);
             }
-            threadPool.execute(new WorkerRunnable(clientSocket, "WorkerRunnable"));
+            Worker worker = new Worker(clientSocket, clientSocket.toString(), this);
+            getWorkers().add(worker);
+            threadPool.execute(worker);
         }
     }
 
@@ -60,14 +65,24 @@ public class ThreadPooledServerRunnable implements Runnable {
         }
     }
 
-    private boolean isStopped() {
+    /**
+     * @return Returns a list of all Workers.
+     */
+    public List<Worker> getWorkers() {
+        return workers;
+    }
+
+    /**
+     * @return In case this thread stopped {@code true} or in case of run it is {@code false}.
+     */
+    public boolean isStopped() {
         return isStopped;
     }
 
     private final ServerSocket serverSocket;
-
-    protected boolean isStopped = false;
-    protected Thread runningThread = null;
-    protected int limitedThreadPooledWorkers;
-    protected ExecutorService threadPool;
+    private final int limitedThreadPooledWorkers;
+    private ExecutorService threadPool;
+    private boolean isStopped = false;
+    private Thread runningThread = null;
+    private List<Worker> workers = new ArrayList<>();
 }

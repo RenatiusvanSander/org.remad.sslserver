@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 /**
  * A simple kept SSL Server.
+ * @author Remy Meier
  */
 public class ThreadPooledSSLServer {
 
@@ -41,7 +42,7 @@ public class ThreadPooledSSLServer {
         Thread serverThread = new Thread(server);
         serverThread.start();
 
-        if (server.isStopped) {
+        if (server.isStopped()) {
             server.stop();
         }
     }
