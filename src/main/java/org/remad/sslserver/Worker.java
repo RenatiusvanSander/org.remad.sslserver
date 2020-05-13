@@ -21,6 +21,7 @@ public class Worker implements Runnable {
     private boolean isStopped = false;
     private PrintWriter outPrintWriter = null;
     private boolean isLogout;
+    private int countLoginFail = 0;
 
     /**
      * Creates a new instance of WorkerRunnable.
@@ -157,7 +158,25 @@ public class Worker implements Runnable {
         return isLogout;
     }
 
+    /**
+     * Sets logout to true.
+     * @param logout n case of logout is {@code true}.
+     */
     public void setLogout(boolean logout) {
         isLogout = logout;
+    }
+
+    /**
+     * @return The counted login fails.
+     */
+    public int getCountLoginFail() {
+        return countLoginFail;
+    }
+
+    /**
+     * Increases login fil with +1.
+     */
+    public void setCountLoginFail() {
+        this.countLoginFail++;
     }
 }
