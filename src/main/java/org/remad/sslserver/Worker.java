@@ -3,6 +3,7 @@ package org.remad.sslserver;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,6 +22,7 @@ public class Worker implements Runnable {
     private boolean isStopped = false;
     private PrintWriter outPrintWriter = null;
     private boolean isLogout;
+    private int countLoginFail = 0;
 
     /**
      * Creates a new instance of WorkerRunnable.
@@ -64,7 +66,49 @@ public class Worker implements Runnable {
                         break;
                     }
                     case "<login>": {
-                        // Handles login.
+                        // Handles first login, ToDo refactor to own protocol.login() method
+                        if(tokens.length > 2
+                                && "remad".equals(tokens[1])
+                                && "Password".equals(tokens[2])) {
+                            // Logs user in and inform others
+                            setLogin(tokens[1]);
+                            String loginMessage = tokens[1] + " online";
+                            List<Worker> workers = server.getWorkers();
+                            for(Worker worker : workers) {
+                                if(worker.getLogin() != null && worker.getLogin().equals(tokens[1])) {
+                                    // Sends login message to logging in user.
+                                    worker.send("Server: You successful logged in.");
+                                } else if(worker.getLogin() != null) {
+                                    // Sends online information to others
+                                    worker.send(loginMessage);
+                                }
+                            }
+                            System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " logged in.");
+                        } else if(tokens.length > 2
+                                && "guest".equals(tokens[1])
+                                && "Password2".equals(tokens[2])) {
+                            // Logs user in and inform others
+                            setLogin(tokens[1]);
+                            String loginMessage = tokens[1] + " online";
+                            List<Worker> workers = server.getWorkers();
+                            for(Worker worker : workers) {
+                                if(worker.getLogin() != null && worker.getLogin().equals(tokens[1])) {
+                                    // Sends login message to logging in user.
+                                    worker.send("Server: You successful logged in.");
+                                } else if(worker.getLogin() != null) {
+                                    // Sends online information to others
+                                    worker.send(loginMessage);
+                                }
+                            }
+                            System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " logged in.");
+                        } if (getCountLoginFail() == 3) {
+                            // Three login failures set a Guest name.
+                            countLoginFail = 0;
+                            login = "Guest" + Instant.now().getEpochSecond();
+                        } else {
+                            // Increases login failures.
+                            setCountLoginFail();
+                        }
                         break;
                     }
                     case "<FileTransfer>": {
@@ -73,6 +117,7 @@ public class Worker implements Runnable {
                     }
                     default: {
                         // Sends echo message back to client.
+                        System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " wrote: " + line);
                         send("You said: " + line);
                         break;
                     }
@@ -83,13 +128,19 @@ public class Worker implements Runnable {
                     System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " has logged out.");
                     break;
                 }
-
-                System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " wrote: " + line);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         stop();
+    }
+
+    /**
+     * Sets login with username.
+     * @param val The user's login.
+     */
+    public void setLogin(String val) {
+        login = val;
     }
 
     /**
@@ -157,7 +208,25 @@ public class Worker implements Runnable {
         return isLogout;
     }
 
+    /**
+     * Sets logout to true.
+     * @param logout n case of logout is {@code true}.
+     */
     public void setLogout(boolean logout) {
         isLogout = logout;
+    }
+
+    /**
+     * @return The counted login fails.
+     */
+    public int getCountLoginFail() {
+        return countLoginFail;
+    }
+
+    /**
+     * Increases login fil with +1.
+     */
+    public void setCountLoginFail() {
+        this.countLoginFail++;
     }
 }
