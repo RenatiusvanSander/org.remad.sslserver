@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * This handles a client socket connection in a thread.
+ * @author Remy Meier
  */
 public class Worker implements Runnable {
 
@@ -78,6 +79,7 @@ public class Worker implements Runnable {
                 }
 
                 if(isLogout()) {
+                    // Ends the while loop.
                     System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " has logged out.");
                     break;
                 }

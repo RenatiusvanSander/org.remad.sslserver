@@ -8,6 +8,7 @@ import java.util.Map;
 
 /**
  * As a factory this handles initializing of a server socket.
+ * @author Remy Meier
  */
 public class ServerSocketFactory {
 

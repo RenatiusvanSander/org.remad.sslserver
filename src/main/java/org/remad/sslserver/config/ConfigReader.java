@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 
 /**
  * This class handles read a json file, deserialize JSON to {@link Config} and create the Server Socket Settings.
+ * @author Remy Meier
  */
 public class ConfigReader {
 
