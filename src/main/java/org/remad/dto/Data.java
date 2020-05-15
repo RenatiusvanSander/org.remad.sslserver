@@ -1,4 +1,4 @@
-package org.remad.sslserver;
+package org.remad.dto;
 
 import java.io.Serializable;
 

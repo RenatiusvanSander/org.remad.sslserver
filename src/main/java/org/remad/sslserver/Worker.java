@@ -1,17 +1,15 @@
 package org.remad.sslserver;
 
+import org.apache.maven.shared.utils.StringUtils;
+import org.remad.dto.Data;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Set;
 
 /**
  * This handles a client socket connection in a thread.
@@ -52,7 +50,7 @@ public class Worker implements Runnable {
                 new InputStreamReader(clientSocket.getInputStream()))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                String[] tokens = org.apache.maven.shared.utils.StringUtils.split(line);
+                String[] tokens = StringUtils.split(line);
                 String command = tokens.length == 0 ? line : tokens[0];
                 switch(command.toLowerCase()) {
                     case "<logout>": {
@@ -116,64 +114,24 @@ public class Worker implements Runnable {
                         }
                         break;
                     }
-                    case "<FileTransfer>": {
-                        FileInputStream fis = null;
-                        BufferedInputStream bis = null;
-                        OutputStream os = null;
-                        FileOutputStream fos = null;
-                        BufferedOutputStream bos = null;
-                        InputStream is = null;
-                        // Transfers a file.
+                    case "<filetransfer>": {
+                        Data data = null;
                         if(tokens.length == 2) {
-                            // Transfers a requested file to client
-                            try {
-                                String fullFileName = tokens[1];
-                                File file = new File(fullFileName);
-                                byte[] allocatedByteBuffer = new byte[(int)file.length()];
-                                fis = new FileInputStream(file);
-                                bis = new BufferedInputStream(fis);
-                                bis.read(allocatedByteBuffer,0, allocatedByteBuffer.length);
-                                os = clientSocket.getOutputStream();
-                                // System.out.println("Sending " + fullFileName + "(" + allocatedByteBuffer.length + " bytes)");
-                                os.write(allocatedByteBuffer,0,allocatedByteBuffer.length);
-                                os.flush();
-                                // System.out.println("Done.");
-                            } finally {
-                                if(fis != null && bis != null && os != null) {
-                                    // Whatever comes, Close streams when they are not null.
-                                    fis.close();
-                                    bis.close();
-                                    os.close();
-                                }
-                            }
+                            // Transfers a requested file to client.
+
                         } else if(tokens.length > 2){
+                            // Transfers a file from client to server.
                             try {
-                                String fullQualifiedFileName = tokens[1];
-                                int fileByteSize = Integer.parseInt(tokens[2]);
-                                // receive file
-                                byte [] allocatedByteBuffer  = new byte [fileByteSize];
-                                is = clientSocket.getInputStream();
-                                fos = new FileOutputStream(fullQualifiedFileName);
-                                bos = new BufferedOutputStream(fos);
-                                int bytesRead = is.read(allocatedByteBuffer,0,allocatedByteBuffer.length);
-                                int current = bytesRead;
-
-                                do {
-                                    bytesRead =
-                                            is.read(allocatedByteBuffer, current, (allocatedByteBuffer.length - current));
-                                    if(bytesRead >= 0) current += bytesRead;
-                                } while(bytesRead > -1);
-
-                                bos.write(allocatedByteBuffer, 0 , current);
-                                bos.flush();
-                            } finally {
-                                if(is != null && fos != null && bos != null) {
-                                    is.close();
-                                    fos.close();
-                                    bos.close();
-                                }
+                                ObjectInputStream objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
+                                data = (Data) objectInputStream.readObject();
+                                FileOutputStream fileOutputStream = new FileOutputStream(data.getFullFileName());
+                                fileOutputStream.write(data.getFile());
+                                fileOutputStream.close();
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
                             }
                         }
+                        data = null;
                         break;
                     }
                     default: {
