@@ -118,7 +118,17 @@ public class Worker implements Runnable {
                         Data data = null;
                         if(tokens.length == 2) {
                             // Transfers a requested file to client.
-
+                            try {
+                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                                String fullFileName = "/home/rmeier/IdeaProjects/SSLServer" + File.separator + tokens[1];
+                                FileInputStream fileInputStream = new FileInputStream(new File(fullFileName));
+                                data = Data.createData(tokens[1], fileInputStream.readAllBytes());
+                                objectOutputStream.writeObject(data);
+                                objectOutputStream.flush();
+                                fileInputStream.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         } else if(tokens.length > 2){
                             // Transfers a file from client to server.
                             try {
