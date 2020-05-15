@@ -116,6 +116,7 @@ public class Worker implements Runnable {
                     }
                     case "<filetransfer>": {
                         Data data = null;
+                        String logMessage = null;
                         if(tokens.length == 2) {
                             // Transfers a requested file to client.
                             try {
@@ -126,6 +127,7 @@ public class Worker implements Runnable {
                                 objectOutputStream.writeObject(data);
                                 objectOutputStream.flush();
                                 fileInputStream.close();
+                                logMessage = "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " downloaded : " + data.getFullFileName();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -137,10 +139,12 @@ public class Worker implements Runnable {
                                 FileOutputStream fileOutputStream = new FileOutputStream(data.getFullFileName());
                                 fileOutputStream.write(data.getFile());
                                 fileOutputStream.close();
+                                logMessage = "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " transfered : " + data.getFullFileName();
                             } catch (ClassNotFoundException e) {
                                 e.printStackTrace();
                             }
                         }
+                        System.out.println(logMessage);
                         data = null;
                         break;
                     }
