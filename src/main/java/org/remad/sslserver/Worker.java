@@ -1,5 +1,8 @@
 package org.remad.sslserver;
 
+import org.apache.maven.shared.utils.StringUtils;
+import org.remad.dto.Data;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -47,7 +50,7 @@ public class Worker implements Runnable {
                 new InputStreamReader(clientSocket.getInputStream()))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                String[] tokens = org.apache.maven.shared.utils.StringUtils.split(line);
+                String[] tokens = StringUtils.split(line);
                 String command = tokens.length == 0 ? line : tokens[0];
                 switch(command.toLowerCase()) {
                     case "<logout>": {
@@ -111,8 +114,38 @@ public class Worker implements Runnable {
                         }
                         break;
                     }
-                    case "<FileTransfer>": {
-                        // Transfers a file.
+                    case "<filetransfer>": {
+                        Data data = null;
+                        String logMessage = null;
+                        if(tokens.length == 2) {
+                            // Transfers a requested file to client.
+                            try {
+                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                                String fullFileName = "/home/rmeier/IdeaProjects/SSLServer" + File.separator + tokens[1];
+                                FileInputStream fileInputStream = new FileInputStream(new File(fullFileName));
+                                data = Data.createData(tokens[1], fileInputStream.readAllBytes());
+                                objectOutputStream.writeObject(data);
+                                objectOutputStream.flush();
+                                fileInputStream.close();
+                                logMessage = "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " downloaded : " + data.getFullFileName();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        } else if(tokens.length > 2){
+                            // Transfers a file from client to server.
+                            try {
+                                ObjectInputStream objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
+                                data = (Data) objectInputStream.readObject();
+                                FileOutputStream fileOutputStream = new FileOutputStream(data.getFullFileName());
+                                fileOutputStream.write(data.getFile());
+                                fileOutputStream.close();
+                                logMessage = "[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " transfered : " + data.getFullFileName();
+                            } catch (ClassNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        System.out.println(logMessage);
+                        data = null;
                         break;
                     }
                     default: {
@@ -124,7 +157,7 @@ public class Worker implements Runnable {
                 }
 
                 if(isLogout()) {
-                    // Ends the while loop.
+                    // Ends the while loop when isLogout is true.
                     System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " has logged out.");
                     break;
                 }
@@ -224,7 +257,7 @@ public class Worker implements Runnable {
     }
 
     /**
-     * Increases login fil with +1.
+     * Increases login fail with +1.
      */
     public void setCountLoginFail() {
         this.countLoginFail++;
