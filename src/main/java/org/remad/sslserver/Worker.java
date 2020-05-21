@@ -148,6 +148,14 @@ public class Worker implements Runnable {
                         data = null;
                         break;
                     }
+                    case "<serialize>": {
+                        try(ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream())) {
+                            // ToDo write a class to fetch the exact object and serialize this
+                            Object serializedObject = new Object();
+                            objectOutputStream.writeObject(serializedObject);
+                            objectOutputStream.flush();
+                        }
+                    }
                     default: {
                         // Sends echo message back to client.
                         System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " wrote: " + line);
