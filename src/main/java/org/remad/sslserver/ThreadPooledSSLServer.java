@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A simple kept SSL Server.
+ * A simple kept SSL Server in Thread Pooled Pattern.
  * @author Remy Meier
  */
 public class ThreadPooledSSLServer {

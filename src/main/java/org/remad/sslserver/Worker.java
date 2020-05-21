@@ -157,7 +157,7 @@ public class Worker implements Runnable {
                 }
 
                 if(isLogout()) {
-                    // Ends the while loop.
+                    // Ends the while loop when isLogout is true.
                     System.out.println("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SS")) + "] " + getClientIP().getHostAddress() + " has logged out.");
                     break;
                 }
